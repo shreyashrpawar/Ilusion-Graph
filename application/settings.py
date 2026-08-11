@@ -28,9 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s&)pfotqqt_=1&eoi*a_8g!(h(s^popf2uj*)q*0$l@g34p17$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ilusion.one','www.ilusion.one','http://20.69.236.103/']
 
 
 # Application definition
