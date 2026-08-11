@@ -33,6 +33,10 @@ It is much simpler to enhance the minor permissions as well with graph databases
 ##  Model (CognoDB )
 A Graph Database architecture to natively represent file hierarchies, ownership, and complex permission structures can be added as well. 
 Instead of traditional SQL joins, the architecture relies on **Nodes** and directional **Relationships** (Edges) for high-performance traversal.
+
+<img width="776" height="736" alt="Screenshot from 2026-08-11 08-52-59" src="https://github.com/user-attachments/assets/48a31c8f-c2a6-4985-b376-09413196768b" />
+
+
 ### Nodes
 Nodes represent the entities/objects within the vault ecosystem.
 | Node Label | Properties | Description |
@@ -163,4 +167,19 @@ TO generate the COGNODB credentials
 Create an instance
 Sign up and create a free c0 instance. It provisions in well under a minute and you pick the region
 ```
+
+## Screenshot of the UI
+
+<img width="1915" height="955" alt="Screenshot from 2026-08-11 09-19-53" src="https://github.com/user-attachments/assets/fab0db99-2f25-423d-b67b-012f8a9b00ca" />
+
+
+## Hosted application Link and Recording
+
+URL: https://ilusion.one
+
+[Screencast from 2026-08-11 09-23-57.webm](https://github.com/user-attachments/assets/f9b388b3-a9e4-4f58-82c2-a9c28f2b205f)
+
+
+
+
 
