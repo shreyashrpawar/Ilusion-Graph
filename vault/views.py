@@ -139,17 +139,15 @@ def get_fileorFolders(request):
         RETURN f
         """
     else:
-        # Root view: fetch files and folders having no parent folder
+        # Root view: fetch files and folders having parent_id as 0 or NULL
         file_query = """
         MATCH (f:File)-[:OWNED_BY]->(u:User {username: $username})
-        OPTIONAL MATCH (parent:Folder)-[:PARENT_OF]->(f)
-        WHERE parent IS NULL
+        WHERE f.parent_id IS NULL OR f.parent_id = 0 OR f.parent_id = '0'
         RETURN f
         """
         folder_query = """
         MATCH (f:Folder)-[:OWNED_BY]->(u:User {username: $username})
-        OPTIONAL MATCH (parent:Folder)-[:PARENT_OF]->(f)
-        WHERE parent IS NULL
+        WHERE f.parent_id IS NULL OR f.parent_id = 0 OR f.parent_id = '0'
         RETURN f
         """
 
@@ -258,7 +256,8 @@ def vault_upload(request):
 
                 if folder_id != 0:
                     parent_query = """
-                    MATCH (parent:Folder {id: $parent_id}), (child:File {id: $child_id})
+                    MATCH (parent:Folder), (child:File {id: $child_id})
+                    WHERE parent.id = $parent_id OR parent.id = toString($parent_id) OR parent.id = toInteger($parent_id)
                     CREATE (parent)-[r:PARENT_OF {since: $since}]->(child)
                     RETURN parent, r, child
                     """
@@ -429,7 +428,8 @@ def create_folder(request):
 
                 if parent_folder_id != 0:
                     parent_query = """
-                    MATCH (parent:Folder {id: $parent_id}), (child:Folder {id: $child_id})
+                    MATCH (parent:Folder), (child:Folder {id: $child_id})
+                    WHERE parent.id = $parent_id OR parent.id = toString($parent_id) OR parent.id = toInteger($parent_id)
                     CREATE (parent)-[r:PARENT_OF {since: $since}]->(child)
                     RETURN parent, r, child
                     """
