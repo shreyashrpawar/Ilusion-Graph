@@ -30,7 +30,8 @@ SECRET_KEY = 'django-insecure-s&)pfotqqt_=1&eoi*a_8g!(h(s^popf2uj*)q*0$l@g34p17$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['ilusion.one','www.ilusion.one','http://20.69.236.103/']
+ALLOWED_HOSTS = ['ilusion.one', 'www.ilusion.one', '20.69.236.103', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://ilusion.one', 'https://www.ilusion.one', 'http://20.69.236.103', 'http://localhost', 'http://127.0.0.1']
 
 
 # Application definition
