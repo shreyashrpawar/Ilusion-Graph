@@ -168,6 +168,10 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "vault:vault_home"
 LOGOUT_REDIRECT_URL = "login"
 
+# Upload Limits (200 MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 

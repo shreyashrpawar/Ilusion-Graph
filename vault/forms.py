@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-MAX_FILE_SIZE_BYTES = 190 * 1024 * 1024  # 190 MB
+MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024  # 200 MB
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(widget=forms.FileInput(attrs={

@@ -897,7 +897,7 @@
         if (status) status.classList.remove('hidden');
     }
 
-    const MAX_UPLOAD_BYTES = 190 * 1024 * 1024; // 190 MB
+    const MAX_UPLOAD_BYTES = 200 * 1024 * 1024; // 200 MB
 
     function checkFileSize(fileInput) {
         const errorEl = document.getElementById('file-size-error');
@@ -918,23 +918,21 @@
         return true;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const fileInput = document.querySelector('#upload-form input[type="file"]');
-        if (fileInput) {
-            fileInput.addEventListener('change', function() {
-                checkFileSize(this);
-            });
+    document.addEventListener('change', function(e) {
+        if (e.target && (e.target.id === 'file_input' || e.target.matches('#upload-form input[type="file"]'))) {
+            checkFileSize(e.target);
         }
     });
 
     function handleUploadStart(e) {
-        const fileInput = document.querySelector('#upload-form input[type="file"]');
+        const fileInput = document.getElementById('file_input') || document.querySelector('#upload-form input[type="file"]');
         if (!fileInput || fileInput.files.length === 0) {
             return;
         }
 
         if (!checkFileSize(fileInput)) {
             e.preventDefault();
+            e.stopPropagation();
             return false;
         }
 
