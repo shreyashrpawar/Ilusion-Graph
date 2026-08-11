@@ -121,6 +121,21 @@ Fetch files which are shared with the current user and return the permission the
                     }]->(u)
                     RETURN f, r
 ```
+
+**Some MultiHop queries**
+
+Fetching Child Files
+```
+MATCH (parent:Folder {id: $folder_id})-[:PARENT_OF]->(f:File)-[:OWNED_BY]->(u:User {username: $username})
+RETURN f
+```
+Fetching Child Sub-Folders
+```
+MATCH (parent:Folder {id: $folder_id})-[:PARENT_OF]->(f:Folder)-[:OWNED_BY]->(u:User {username: $username})
+RETURN f
+```
+
+
 ## Setup and Instructions
 
 Clone the project
