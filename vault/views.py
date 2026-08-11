@@ -142,12 +142,14 @@ def get_fileorFolders(request):
         # Root view: fetch files and folders having no parent folder
         file_query = """
         MATCH (f:File)-[:OWNED_BY]->(u:User {username: $username})
-        WHERE f.parent_id IS NULL
+        OPTIONAL MATCH (parent:Folder)-[:PARENT_OF]->(f)
+        WHERE parent IS NULL
         RETURN f
         """
         folder_query = """
         MATCH (f:Folder)-[:OWNED_BY]->(u:User {username: $username})
-        WHERE f.parent_id IS NULL
+        OPTIONAL MATCH (parent:Folder)-[:PARENT_OF]->(f)
+        WHERE parent IS NULL
         RETURN f
         """
 
@@ -191,6 +193,10 @@ def get_fileorFolders(request):
     total_storage_mb = format_size_mb(total_bytes)
     breadcrumbs = get_breadcrumbs(folder_id, request.user.username) if folder_id != 0 else []
 
+    print(f"DEBUG ROOT FETCH - username: {request.user.username}, folder_id: {folder_id}, category: {category}, view_mode: {view_mode}")
+    print(f"DEBUG ROOT FILES COUNT: {len(files)}, FILES: {files}")
+    print(f"DEBUG ROOT FOLDERS COUNT: {len(folders)}, FOLDERS: {folders}")
+
     return render(request, 'homepage.html', {
         'form': form,
         'files': files,
@@ -227,7 +233,8 @@ def vault_upload(request):
                 name: $name,
                 url: $url,
                 size: $size,
-                createdAt: $createdAt
+                createdAt: $createdAt,
+                parent_id: $parent_id
             })
             CREATE (f)-[r:OWNED_BY {
                 type: $type,
@@ -243,6 +250,7 @@ def vault_upload(request):
                     url=file_url,
                     size=file.size,
                     createdAt=created_at,
+                    parent_id=folder_id,
                     username=request.user.username,
                     type='File',
                     since=created_at
@@ -398,7 +406,8 @@ def create_folder(request):
             CREATE (f:Folder {
                 id: $id,
                 name: $name,
-                createdAt: $createdAt
+                createdAt: $createdAt,
+                parent_id: $parent_id
             })
             CREATE (f)-[r:OWNED_BY {
                 type: $type,
@@ -412,6 +421,7 @@ def create_folder(request):
                     id=new_folder_id,
                     name=folder_name,
                     createdAt=created_at,
+                    parent_id=parent_folder_id,
                     username=request.user.username,
                     type='Folder',
                     since=created_at

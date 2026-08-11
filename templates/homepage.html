@@ -269,6 +269,7 @@
                         <div class="w-full bg-brand-200/60 rounded-full h-1.5 overflow-hidden">
                             <div class="bg-brand-600 h-1.5 rounded-full animate-pulse w-full"></div>
                         </div>
+                    </div>
                     <!-- FILE SIZE ERROR BANNER -->
                     <div id="file-size-error" class="hidden mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs font-semibold text-rose-700 animate-in fade-in duration-150">
                         <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -435,7 +436,13 @@
         <!-- HEADER: TITLE & STATS -->
         <div class="flex items-center justify-between pt-2">
             <h1 class="text-2xl font-serif font-bold text-slate-900 capitalize">
-                {% if current_category %}{{ current_category }} Files{% elif breadcrumbs %}{{ breadcrumbs.last.name }}{% else %}Files & Folders{% endif %}
+                {% if current_category %}
+                    {{ current_category }} Files
+                {% elif breadcrumbs %}
+                    {% with breadcrumbs|last as last_crumb %}{{ last_crumb.name }}{% endwith %}
+                {% else %}
+                    Files & Folders
+                {% endif %}
             </h1>
             <span class="text-xs text-slate-500 font-semibold">
                 {{ folders|length }} folder{% if folders|length != 1 %}s{% endif %}, {{ files|length }} file{% if files|length != 1 %}s{% endif %}
@@ -717,14 +724,14 @@
         if (mode === 'grid') {
             listView.classList.add('hidden');
             gridView.classList.remove('hidden');
-            gridBtn.className = 'p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors';
-            listBtn.className = 'p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors';
+            if (gridBtn) gridBtn.className = 'p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors';
+            if (listBtn) listBtn.className = 'p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors';
             localStorage.setItem('vault_view_mode', 'grid');
         } else {
             gridView.classList.add('hidden');
             listView.classList.remove('hidden');
-            listBtn.className = 'p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors';
-            gridBtn.className = 'p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors';
+            if (listBtn) listBtn.className = 'p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors';
+            if (gridBtn) gridBtn.className = 'p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors';
             localStorage.setItem('vault_view_mode', 'list');
         }
     }
