@@ -1,4 +1,7 @@
 from django import forms
+from django.core.exceptions import ValidationError
+
+MAX_FILE_SIZE_BYTES = 190 * 1024 * 1024  # 190 MB
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(widget=forms.FileInput(attrs={
@@ -6,3 +9,9 @@ class UploadFileForm(forms.Form):
         'id': 'file_input',
         'required': 'required'
     }))
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if file and file.size > MAX_FILE_SIZE_BYTES:
+            raise ValidationError("Maximum file size is 200 mb.")
+        return file
