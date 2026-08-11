@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account | Ilusion Graph{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-xl mx-auto space-y-6 my-auto py-12">
+    <!-- Header / Logo -->
+    <div class="text-center space-y-2">
+        <div class="mx-auto h-12 w-12 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-sm">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-slate-900 tracking-tight">Create an account</h2>
+        <p class="text-xs text-slate-500">Join Ilusion Graph today</p>
+    </div>
+
+    <!-- White Card -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div class="p-3.5 rounded-xl text-xs border font-medium {% if message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-200{% else %}bg-emerald-50 text-emerald-800 border-emerald-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="space-y-1.5">
+                <label for="{{ field.id_for_label }}" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                <span class="helptext text-xs text-slate-400 mt-1 block">{{ field.help_text|safe }}</span>
+                {% endif %}
+                {% if field.errors %}
+                <p class="text-xs text-rose-500 font-medium mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            {{ form }}
+            {% endfor %}
+
+            <div class="pt-3">
+                <button type="submit" class="w-full py-3 px-4 bg-brand-accent hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-sm transition-all">
+                    Create Account
+                </button>
+            </div>
+        </form>
+
+        <div class="pt-5 border-t border-slate-100 text-center">
+            <p class="text-xs text-slate-500">
+                Already have an account?
+                <a href="{% url 'login' %}" class="font-bold text-brand-700 hover:text-brand-800 ml-1 transition-colors">
+                    Sign in here
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In | Ilusion Graph{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md mx-auto space-y-6 my-auto py-12">
+    <!-- Header / Logo -->
+    <div class="text-center space-y-2">
+        <div class="mx-auto h-12 w-12 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-sm">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-slate-900 tracking-tight">Welcome back</h2>
+        <p class="text-xs text-slate-500">Sign in to your Ilusion Graph account</p>
+    </div>
+
+    <!-- White Card -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div class="p-3.5 rounded-xl text-xs border font-medium {% if message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-200{% else %}bg-emerald-50 text-emerald-800 border-emerald-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="space-y-1.5">
+                <label for="{{ field.id_for_label }}" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-xs text-rose-500 font-medium mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            {{ form }}
+            {% endfor %}
+
+            <div class="flex items-center justify-end pt-1">
+                <a href="{% url 'password_reset' %}" class="text-xs text-brand-700 hover:text-brand-800 font-semibold transition-colors">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <button type="submit" class="w-full py-3 px-4 bg-brand-accent hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-sm transition-all">
+                Sign In
+            </button>
+        </form>
+
+        <div class="pt-5 border-t border-slate-100 text-center">
+            <p class="text-xs text-slate-500">
+                Don't have an account?
+                <a href="{% url 'register' %}" class="font-bold text-brand-700 hover:text-brand-800 ml-1 transition-colors">
+                    Register here
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

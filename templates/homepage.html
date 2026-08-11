@@ -1,0 +1,916 @@
+{% extends 'base.html' %}
+
+{% block title %} Files & Folders | Ilusion Graph{% endblock %}
+
+{% block content %}
+<div class="w-full flex flex-col md:flex-row gap-8 items-start">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-full md:w-64 shrink-0 space-y-4">
+        <!-- Action Buttons -->
+        <div class="space-y-2">
+            <button
+                onclick="document.getElementById('upload-modal').classList.toggle('hidden'); document.getElementById('folder-modal').classList.add('hidden')"
+                class="w-full py-3 px-4 bg-brand-accent hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Upload New File</span>
+            </button>
+
+            <button
+                onclick="document.getElementById('folder-modal').classList.toggle('hidden'); document.getElementById('upload-modal').classList.add('hidden')"
+                class="w-full py-2.5 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                </svg>
+                <span>Create Folder</span>
+            </button>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="space-y-1 text-sm font-medium text-slate-600">
+            <a href="{% url 'vault:vault_home' %}"
+                class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl {% if not current_category and not current_folder_id %}bg-brand-50 text-brand-700 font-semibold{% else %}hover:bg-slate-100 text-slate-600{% endif %} transition-colors">
+                <svg class="w-5 h-5 {% if not current_category and not current_folder_id %}text-brand-600{% else %}text-slate-400{% endif %}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <span>Files & Folders</span>
+            </a>
+
+            <a href="{% url 'vault:vault_home' %}?view=shared"
+                class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl {% if view_mode == 'shared' %}bg-brand-50 text-brand-700 font-semibold{% else %}hover:bg-slate-100 text-slate-600{% endif %} transition-colors">
+                <svg class="w-5 h-5 {% if view_mode == 'shared' %}text-brand-600{% else %}text-slate-400{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Shared</span>
+            </a>
+
+            <!-- CATEGORIES -->
+            <div class="pt-4 pb-1 px-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Categories
+            </div>
+
+            <a href="{% url 'vault:vault_home' %}?category=documents"
+                class="flex items-center gap-3 px-3.5 py-2 rounded-xl {% if current_category == 'documents' %}bg-brand-50 text-brand-700 font-semibold{% else %}hover:bg-slate-100 text-slate-600{% endif %} transition-colors">
+                <svg class="w-5 h-5 {% if current_category == 'documents' %}text-brand-600{% else %}text-slate-400{% endif %}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'vault:vault_home' %}?category=media"
+                class="flex items-center gap-3 px-3.5 py-2 rounded-xl {% if current_category == 'media' %}bg-brand-50 text-brand-700 font-semibold{% else %}hover:bg-slate-100 text-slate-600{% endif %} transition-colors">
+                <svg class="w-5 h-5 {% if current_category == 'media' %}text-brand-600{% else %}text-slate-400{% endif %}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Media</span>
+            </a>
+
+            <a href="{% url 'vault:vault_home' %}?category=archives"
+                class="flex items-center gap-3 px-3.5 py-2 rounded-xl {% if current_category == 'archives' %}bg-brand-50 text-brand-700 font-semibold{% else %}hover:bg-slate-100 text-slate-600{% endif %} transition-colors">
+                <svg class="w-5 h-5 {% if current_category == 'archives' %}text-brand-600{% else %}text-slate-400{% endif %}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h14a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+                <span>Archives</span>
+            </a>
+        </nav>
+
+        <!-- STORAGE WIDGET -->
+        <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                    </svg>
+                    <span class="text-xs font-bold text-slate-600 tracking-wider">STORAGE</span>
+                </div>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-500 text-white">R2</span>
+            </div>
+
+            <p class="text-xs text-slate-500 font-medium">Vault Usage: <span class="font-bold text-slate-700">
+                    {{ total_storage_mb|default:"0 MB" }}</span></p>
+
+            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-brand-500 h-1.5 rounded-full w-[25%]"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT -->
+    <main class="flex-1 w-full space-y-6">
+
+        <!-- Messages Banner -->
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div
+                class="p-3.5 rounded-xl text-sm border font-medium flex items-center justify-between {% if message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-200{% else %}bg-emerald-50 text-emerald-800 border-emerald-200{% endif %}">
+                <div class="flex items-center space-x-2.5">
+                    {% if message.tags == 'error' %}
+                    <svg class="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {% else %}
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- TOP TOOLBAR: SEARCH & VIEWS -->
+        <div class="flex items-center gap-3">
+            <!-- Search Bar -->
+            <form action="{% url 'vault:search_files' %}" method="get" class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" name="query" value="{{ search_query|default:'' }}"
+                    placeholder="Search files by name..."
+                    class="pl-10 text-sm bg-white border border-slate-200 rounded-xl focus:border-brand-600 focus:ring-2 focus:ring-brand-600/10 py-2.5 w-full" />
+            </form>
+
+            <!-- View Switcher -->
+            <div class="flex items-center border border-slate-200 rounded-xl p-1 bg-white shrink-0">
+                <button id="view-list-btn" onclick="setViewMode('list')"
+                    class="p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors" title="List View">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <button id="view-grid-btn" onclick="setViewMode('grid')"
+                    class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors" title="Grid View">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- CREATE FOLDER MODAL CARD -->
+        <div id="folder-modal" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    </svg>
+                    Create New Folder
+                </h3>
+                <button onclick="document.getElementById('folder-modal').classList.add('hidden')"
+                    class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form action="{% url 'vault:create_folder' %}" method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="folder_id" value="{{ current_folder_id|default:0 }}">
+                <div>
+                    <label for="folder_name"
+                        class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Folder Name
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="folder_name" name="folder_name" placeholder="Enter folder name..."
+                            required class="form-control" />
+                        <button type="submit"
+                            class="py-2.5 px-5 bg-brand-accent hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-sm transition-colors flex items-center gap-2 shrink-0">
+                            Create Folder
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- UPLOAD FORM CARD -->
+        <div id="upload-modal" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Upload File to Vault
+                </h3>
+                <button onclick="document.getElementById('upload-modal').classList.add('hidden')"
+                    class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="upload-form" action="{% url 'vault:vault_upload' %}" method="post" enctype="multipart/form-data" class="space-y-4" onsubmit="handleUploadStart(event)">
+                {% csrf_token %}
+                <input type="hidden" name="folder_id" value="{{ current_folder_id|default:0 }}">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Select File
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1">
+                            {{ form.file }}
+                        </div>
+                        <button id="upload-submit-btn" type="submit"
+                            class="py-2.5 px-5 bg-brand-accent hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-sm transition-all flex items-center gap-2 shrink-0 disabled:opacity-75 disabled:cursor-not-allowed">
+                            <svg id="upload-btn-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            <svg id="upload-spinner" class="hidden w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span id="upload-btn-text">Upload</span>
+                        </button>
+                    </div>
+
+                    <!-- UPLOAD LOADING STATUS BADGE -->
+                    <div id="upload-loading-status" class="hidden mt-3 p-3 bg-brand-50/80 border border-brand-200/80 rounded-xl space-y-2 animate-in fade-in duration-200">
+                        <div class="flex items-center justify-between text-xs font-semibold text-brand-900">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Uploading file to R2 Storage...
+                            </span>
+                            <span class="text-brand-600 font-mono text-[11px]">Processing</span>
+                        </div>
+                        <div class="w-full bg-brand-200/60 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-brand-600 h-1.5 rounded-full animate-pulse w-full"></div>
+                        </div>
+                    </div>
+
+                    {% if form.file.errors %}
+                    <p class="text-xs text-rose-500 font-medium mt-1">{{ form.file.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- SHARE MODAL -->
+        <div id="share-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in duration-200">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 class="text-lg font-serif font-bold text-slate-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        Share File
+                    </h3>
+                    <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <p class="text-sm font-semibold text-slate-800 truncate" id="share-file-name"></p>
+
+                <!-- Shared Users List -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Shared With</h4>
+                    <div id="shared-users-list" class="space-y-2 max-h-32 overflow-y-auto pr-1">
+                        <!-- Loaded via JS -->
+                        <div class="text-xs text-slate-400 p-2 text-center">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Add New User Form -->
+                <form action="{% url 'vault:share_file' %}" method="post" class="space-y-4 pt-4 border-t border-slate-100" id="share-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="file_id" id="share-file-id" value="">
+                    
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Add User</h4>
+                    
+                    <div>
+                        <input type="text" name="user_id" id="share-username-input" placeholder="Enter username" required
+                            class="text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-colors"
+                            oninput="checkUserExists(this.value)">
+                        <p id="user-check-status" class="text-xs mt-1 h-4"></p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <select name="permission" class="text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-colors flex-1">
+                            <option value="read">Read Only</option>
+                            <option value="delete">Can Delete</option>
+                        </select>
+                        
+                        <button type="submit" id="share-submit-btn" disabled
+                            class="py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Share
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <!-- CUSTOM DELETE CONFIRMATION MODAL -->
+        <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in duration-200">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-serif font-bold text-slate-900">Delete File?</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">This will permanently delete the file node and its cloud storage object.</p>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center space-x-3">
+                    <div class="p-2 rounded-lg bg-white border border-slate-200 text-slate-500 shrink-0">
+                        <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <span id="delete-file-name" class="text-sm font-semibold text-slate-800 truncate"></span>
+                </div>
+
+                <form id="delete-form" action="{% url 'vault:delete_file' %}" method="post" class="space-y-4" onsubmit="handleDeleteStart(event)">
+                    {% csrf_token %}
+                    <input type="hidden" name="file_id" id="delete-file-id" value="">
+                    <input type="hidden" name="folder_id" id="delete-folder-id" value="{{ current_folder_id|default:0 }}">
+
+                    <!-- DELETE LOADING STATUS BADGE -->
+                    <div id="delete-loading-status" class="hidden p-3 bg-rose-50/80 border border-rose-200/80 rounded-xl space-y-2 animate-in fade-in duration-200">
+                        <div class="flex items-center justify-between text-xs font-semibold text-rose-900">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-rose-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Deleting from Neo4j & R2 storage...
+                            </span>
+                            <span class="text-rose-600 font-mono text-[11px]">Deleting</span>
+                        </div>
+                        <div class="w-full bg-rose-200/60 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-rose-600 h-1.5 rounded-full animate-pulse w-full"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-end space-x-3 pt-2">
+                        <button id="delete-cancel-btn" type="button" onclick="closeDeleteModal()"
+                            class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors disabled:opacity-50">
+                            Cancel
+                        </button>
+                        <button id="delete-submit-btn" type="submit"
+                            class="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-75 disabled:cursor-not-allowed">
+                            <svg id="delete-btn-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <svg id="delete-spinner" class="hidden w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span id="delete-btn-text">Yes, Delete</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- BREADCRUMB NAVIGATION -->
+        <nav class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 overflow-x-auto py-1.5 px-3 bg-white border border-slate-200/80 rounded-xl shadow-xs">
+            <a href="{% url 'vault:vault_home' %}" class="flex items-center gap-1.5 hover:text-brand-700 text-slate-600 transition-colors shrink-0">
+                <svg class="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span>Root</span>
+            </a>
+            {% for crumb in breadcrumbs %}
+                <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+                {% if forloop.last %}
+                <span class="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[200px]">{{ crumb.name }}</span>
+                {% else %}
+                <a href="{% url 'vault:vault_home' %}?folder_id={{ crumb.id }}" class="hover:text-brand-700 hover:underline transition-colors truncate max-w-[150px]">
+                    {{ crumb.name }}
+                </a>
+                {% endif %}
+            {% endfor %}
+        </nav>
+
+        <!-- HEADER: TITLE & STATS -->
+        <div class="flex items-center justify-between pt-2">
+            <h1 class="text-2xl font-serif font-bold text-slate-900 capitalize">
+                {% if current_category %}{{ current_category }} Files{% elif breadcrumbs %}{{ breadcrumbs.last.name }}{% else %}Files & Folders{% endif %}
+            </h1>
+            <span class="text-xs text-slate-500 font-semibold">
+                {{ folders|length }} folder{% if folders|length != 1 %}s{% endif %}, {{ files|length }} file{% if files|length != 1 %}s{% endif %}
+            </span>
+        </div>
+
+        <!-- UNIFIED FILE MANAGER CONTAINER -->
+        <div class="space-y-4">
+            {% if folders or files %}
+            <!-- LIST VIEW -->
+            <div id="files-list-view" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                <th class="py-3.5 px-6">NAME</th>
+                                <th class="py-3.5 px-4">SIZE</th>
+                                <th class="py-3.5 px-4">CREATED AT</th>
+                                <th class="py-3.5 px-6 text-right">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                            {% for folder in folders %}
+                            <tr class="hover:bg-amber-50/40 transition-colors group cursor-pointer" onclick="window.location.href='{% url 'vault:vault_home' %}?folder_id={{ folder.id }}'">
+                                <td class="py-4 px-6 text-slate-900 font-semibold">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 rounded-lg bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <span class="truncate max-w-xs text-slate-900" title="{{ folder.name }}">{{ folder.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 text-slate-400 text-xs font-mono">—</td>
+                                <td class="py-4 px-4 text-slate-500 text-xs">{{ folder.createdAt|default:"—" }}</td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="{% url 'vault:vault_home' %}?folder_id={{ folder.id }}"
+                                        class="p-2 text-slate-400 hover:text-brand-700 hover:bg-brand-50 rounded-lg inline-flex items-center transition-colors" title="Open Folder">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% for file in files %}
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+                                <td class="py-4 px-6 text-slate-900 font-semibold">
+                                    <div class="flex items-center gap-3">
+                                        {% if file.file_type == 'image' %}
+                                        <div class="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        {% elif file.file_type == 'video' %}
+                                        <div class="p-2 rounded-lg bg-purple-50 text-purple-600">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        {% elif file.file_type == 'audio' %}
+                                        <div class="p-2 rounded-lg bg-violet-50 text-violet-600">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                            </svg>
+                                        </div>
+                                        {% elif file.file_type == 'archive' %}
+                                        <div class="p-2 rounded-lg bg-amber-50 text-amber-600">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h14a2 2 0 002-2V8m-9 4h4" />
+                                            </svg>
+                                        </div>
+                                        {% else %}
+                                        <div class="p-2 rounded-lg bg-brand-50 text-brand-600">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        {% endif %}
+                                        <span class="truncate max-w-xs text-slate-900"
+                                            title="{{ file.name }}">{{file.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 text-slate-500 text-xs font-mono">
+                                    {{ file.formatted_size|default:"N/A" }}
+                                </td>
+                                <td class="py-4 px-4 text-slate-500 text-xs">
+                                    {{ file.formated_date }}
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        {% if file.url %}
+                                        <a href="{{ file.url }}" target="_blank" download
+                                            class="p-2 text-slate-400 hover:text-brand-700 hover:bg-brand-50 rounded-lg inline-flex items-center transition-colors"
+                                            title="Download">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                        </a>
+                                        {% endif %}
+                                        {% if not file.is_shared %}
+                                        <button type="button" onclick="openShareModal('{{ file.id }}', '{{ file.name|escapejs }}')"
+                                            class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg inline-flex items-center transition-colors" title="Share File">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                            </svg>
+                                        </button>
+                                        {% endif %}
+                                        
+                                        {% if not file.is_shared or file.permission == 'delete' %}
+                                        <button type="button" onclick="openDeleteModal('{{ file.id }}', '{{ file.name|escapejs }}', '{{ current_folder_id|default:0 }}')"
+                                            class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg inline-flex items-center transition-colors" title="Delete File">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- GRID / ICON VIEW -->
+            <div id="files-grid-view"
+                class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for folder in folders %}
+                <a href="{% url 'vault:vault_home' %}?folder_id={{ folder.id }}"
+                    class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between space-y-3 group cursor-pointer">
+                    <div class="flex items-start justify-between">
+                        <div class="p-3 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-colors">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900 truncate group-hover:text-amber-700 transition-colors" title="{{ folder.name }}">{{ folder.name }}</p>
+                        <p class="text-[11px] text-slate-400 pt-0.5">Folder</p>
+                    </div>
+                </a>
+                {% endfor %}
+                {% for file in files %}
+                <div
+                    class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3 group">
+                    <div class="flex items-start justify-between">
+                        {% if file.file_type == 'image' %}
+                        <div
+                            class="p-3 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        {% elif file.file_type == 'video' %}
+                        <div
+                            class="p-3 rounded-xl bg-purple-50 text-purple-600 group-hover:bg-purple-100 transition-colors">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        {% elif file.file_type == 'audio' %}
+                        <div
+                            class="p-3 rounded-xl bg-violet-50 text-violet-600 group-hover:bg-violet-100 transition-colors">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zM9 10l12-3" />
+                            </svg>
+                        </div>
+                        {% elif file.file_type == 'archive' %}
+                        <div
+                            class="p-3 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-colors">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h14a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                        </div>
+                        {% else %}
+                        <div
+                            class="p-3 rounded-xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        {% endif %}
+                        <div class="flex items-center gap-1">
+                            {% if file.url %}
+                            <a href="{{ file.url }}" target="_blank" download
+                                class="p-2 text-slate-400 hover:text-brand-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="Download">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </a>
+                            {% endif %}
+                            {% if not file.is_shared %}
+                            <button type="button" onclick="openShareModal('{{ file.id }}', '{{ file.name|escapejs }}')"
+                                class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg inline-flex items-center transition-colors" title="Share File">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                </svg>
+                            </button>
+                            {% endif %}
+                            
+                            {% if not file.is_shared or file.permission == 'delete' %}
+                            <button type="button" onclick="openDeleteModal('{{ file.id }}', '{{ file.name|escapejs }}', '{{ current_folder_id|default:0 }}')"
+                                class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg inline-flex items-center transition-colors" title="Delete File">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900 truncate" title="{{ file.name }}">{{ file.name }}</p>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
+                            <span>{{ file.formatted_size|default:"N/A" }}</span>
+                            <span>{{ file.formated_date|default:file.createdAt }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <!-- BOTTOM DROP ZONE / ALL CAUGHT UP -->
+            <div
+                class="bg-white rounded-2xl border border-slate-200 shadow-sm py-12 text-center bg-slate-50/30 space-y-2">
+                <div
+                    class="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                </div>
+                <h4 class="text-base font-serif font-bold text-slate-800">All caught up</h4>
+                <p class="text-xs text-slate-400">Upload files or create folders anytime using the buttons on the left.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+    function setViewMode(mode) {
+        const listView = document.getElementById('files-list-view');
+        const gridView = document.getElementById('files-grid-view');
+        const listBtn = document.getElementById('view-list-btn');
+        const gridBtn = document.getElementById('view-grid-btn');
+
+        if (!listView || !gridView) return;
+
+        if (mode === 'grid') {
+            listView.classList.add('hidden');
+            gridView.classList.remove('hidden');
+            gridBtn.className = 'p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors';
+            listBtn.className = 'p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors';
+            localStorage.setItem('vault_view_mode', 'grid');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listBtn.className = 'p-1.5 text-slate-700 bg-slate-100 rounded-lg transition-colors';
+            gridBtn.className = 'p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors';
+            localStorage.setItem('vault_view_mode', 'list');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Restore view mode on page load
+        const savedMode = localStorage.getItem('vault_view_mode') || 'list';
+        setViewMode(savedMode);
+    });
+
+    function openDeleteModal(fileId, fileName, folderId) {
+        document.getElementById('delete-file-id').value = fileId;
+        document.getElementById('delete-folder-id').value = folderId || '0';
+        document.getElementById('delete-file-name').textContent = fileName;
+
+        // Reset delete modal state
+        const btn = document.getElementById('delete-submit-btn');
+        const cancelBtn = document.getElementById('delete-cancel-btn');
+        const icon = document.getElementById('delete-btn-icon');
+        const spinner = document.getElementById('delete-spinner');
+        const text = document.getElementById('delete-btn-text');
+        const status = document.getElementById('delete-loading-status');
+
+        if (btn) {
+            btn.disabled = false;
+            if (icon) icon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
+            if (text) text.textContent = 'Yes, Delete';
+        }
+        if (cancelBtn) cancelBtn.disabled = false;
+        if (status) status.classList.add('hidden');
+
+        document.getElementById('delete-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+    }
+
+    // Share Modal Logic
+    let debounceTimer;
+
+    function openShareModal(fileId, fileName) {
+        document.getElementById('share-file-id').value = fileId;
+        document.getElementById('share-file-name').textContent = fileName;
+        document.getElementById('share-username-input').value = '';
+        document.getElementById('user-check-status').textContent = '';
+        document.getElementById('share-submit-btn').disabled = true;
+        document.getElementById('share-modal').classList.remove('hidden');
+        
+        loadSharedUsers(fileId);
+    }
+
+    function closeShareModal() {
+        document.getElementById('share-modal').classList.add('hidden');
+    }
+
+    function loadSharedUsers(fileId) {
+        const listDiv = document.getElementById('shared-users-list');
+        listDiv.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center">Loading...</div>';
+        
+        fetch(`{% url 'vault:get_shared_users' %}?file_id=${fileId}`)
+            .then(res => res.json())
+            .then(data => {
+                listDiv.innerHTML = '';
+                if (data.users && data.users.length > 0) {
+                    data.users.forEach(user => {
+                        const row = document.createElement('div');
+                        row.className = "flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg text-sm";
+                        row.innerHTML = `
+                            <div>
+                                <span class="font-semibold text-slate-700">${user.username}</span>
+                                <span class="text-[10px] uppercase font-bold tracking-wider ml-2 px-1.5 py-0.5 rounded ${user.permission === 'delete' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}">${user.permission}</span>
+                            </div>
+                            <button type="button" onclick="removeSharedUser('${fileId}', '${user.username}')" class="text-slate-400 hover:text-rose-500 transition-colors" title="Remove User">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        `;
+                        listDiv.appendChild(row);
+                    });
+                } else {
+                    listDiv.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center italic">Not shared with anyone.</div>';
+                }
+            })
+            .catch(err => {
+                listDiv.innerHTML = '<div class="text-xs text-rose-500 p-2 text-center">Error loading users.</div>';
+            });
+    }
+
+    function removeSharedUser(fileId, username) {
+        if(!confirm(`Remove access for ${username}?`)) return;
+        
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('file_id', fileId);
+        formData.append('username', username);
+        
+        fetch(`{% url 'vault:remove_shared_user' %}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrf
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                loadSharedUsers(fileId);
+            } else {
+                alert(data.error || 'Failed to remove user');
+            }
+        })
+        .catch(err => alert('Error removing user.'));
+    }
+
+    function checkUserExists(username) {
+        const statusEl = document.getElementById('user-check-status');
+        const submitBtn = document.getElementById('share-submit-btn');
+        
+        clearTimeout(debounceTimer);
+        
+        if (!username.trim()) {
+            statusEl.textContent = '';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        statusEl.textContent = 'Checking...';
+        statusEl.className = 'text-xs mt-1 h-4 text-slate-500';
+        submitBtn.disabled = true;
+
+        debounceTimer = setTimeout(() => {
+            fetch(`{% url 'vault:check_user_exists' %}?username=${encodeURIComponent(username)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        statusEl.textContent = 'User found';
+                        statusEl.className = 'text-xs mt-1 h-4 font-semibold text-emerald-600';
+                        submitBtn.disabled = false;
+                    } else {
+                        statusEl.textContent = data.message || 'User not found';
+                        statusEl.className = 'text-xs mt-1 h-4 font-semibold text-rose-500';
+                        submitBtn.disabled = true;
+                    }
+                })
+                .catch(err => {
+                    statusEl.textContent = 'Error checking user';
+                    statusEl.className = 'text-xs mt-1 h-4 text-rose-500';
+                });
+        }, 500);
+    }
+
+    function handleDeleteStart(e) {
+        const btn = document.getElementById('delete-submit-btn');
+        const cancelBtn = document.getElementById('delete-cancel-btn');
+        const icon = document.getElementById('delete-btn-icon');
+        const spinner = document.getElementById('delete-spinner');
+        const text = document.getElementById('delete-btn-text');
+        const status = document.getElementById('delete-loading-status');
+
+        if (btn) {
+            btn.disabled = true;
+            if (icon) icon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            if (text) text.textContent = 'Deleting...';
+        }
+        if (cancelBtn) cancelBtn.disabled = true;
+        if (status) status.classList.remove('hidden');
+    }
+
+    function handleUploadStart(e) {
+        const fileInput = document.querySelector('#upload-form input[type="file"]');
+        if (fileInput && fileInput.files.length === 0) {
+            return;
+        }
+        const btn = document.getElementById('upload-submit-btn');
+        const icon = document.getElementById('upload-btn-icon');
+        const spinner = document.getElementById('upload-spinner');
+        const text = document.getElementById('upload-btn-text');
+        const status = document.getElementById('upload-loading-status');
+
+        if (btn) {
+            btn.disabled = true;
+            if (icon) icon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            if (text) text.textContent = 'Uploading...';
+        }
+        if (status) {
+            status.classList.remove('hidden');
+        }
+    }
+</script>
+{% endblock %}
